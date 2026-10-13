@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LockerBuddy</title>
+  <style>
+    :root {
+      --page: #e8eef5;
+      --ink: #1d2433;
+      --metal: #3d7fd6;
+      --metal2: #2f67b3;
+      --edge: #1f4a85;
+      --board: #fbfbf6;
+      --paper: #fffef8;
+      --line: #b8d4f0;
+      --yel: #ffcc00;
+      --blk: #16181d;
+      --soft: #6b7488;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--ink);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .wrap {
+      width: min(100%, 620px);
+    }
+
+    .locker {
+      background: linear-gradient(90deg, var(--metal2), var(--metal) 12%, var(--metal) 88%, var(--metal2));
+      border: 5px solid var(--edge);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 0 var(--edge);
+      position: relative;
+    }
+
+    .door {
+      background: rgba(0,0,0,.12);
+      border-radius: 8px;
+      min-height: 320px;
+      border: 3px dashed rgba(255,255,255,.25);
+      padding: 12px;
+    }
+
+    .lock-screen h1 {
+      margin: 0;
+      text-align: center;
+      color: white;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      text-shadow: 2px 2px 0 var(--edge);
+    }
+
+    .lock-screen p {
+      text-align: center;
+      color: white;
+      margin: 8px 0 16px;
+      opacity: .95;
+    }
+
+    .lock-box {
+      width: min(100%, 260px);
+      margin: 0 auto;
+      background: #c9ced8;
+      border: 4px solid #8a91a1;
+      border-radius: 18px;
+      padding: 18px 12px 12px;
+      box-shadow: 0 5px 0 #6c7384;
+      text-align: center;
+    }
+
+    .shackle {
+      width: 90px;
+      height: 42px;
+      border: 9px solid #8a91a1;
+      border-bottom: 0;
+      border-radius: 40px 40px 0 0;
+      margin: -34px auto 8px;
+    }
+
+    .digits {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .digit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .up, .down {
+      width: 42px;
+      height: 26px;
+      border: 2px solid #444;
+      background: #eef0f4;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #222;
+    }
+
+    .cell {
+      width: 42px;
+      height: 48px;
+      background: #111;
+      color: #ffcc00;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      font-size: 30px;
+      font-weight: 700;
+    }
+
+    .btn {
+      background: var(--yel);
+      color: #000;
+      border: 3px solid var(--blk);
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--blk);
+      font-weight: 700;
+    }
+
+    .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blk); }
+
+    .link {
+      background: none;
+      border: 0;
+      color: white;
+      text-decoration: underline;
+      cursor: pointer;
+      opacity: .9;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0 16px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 3px solid var(--blk);
+      background: #fff;
+      border-radius: 10px 10px 0 0;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .tab.on { background: var(--yel); }
+
+    .mini {
+      border: 2px solid rgba(255,255,255,.7);
+      background: rgba(0,0,0,.2);
+      color: white;
+      border-radius: 9px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--board);
+      border: 5px solid #b9bfca;
+      border-radius: 8px;
+      position: relative;
+      padding: 16px 12px 12px;
+      box-shadow: inset 0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.15);
+    }
+
+    .panel h2 {
+      margin: 8px 0 12px 118px;
+      color: #c62828;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+    }
+
+    .note {
+      background: #fff37a;
+      color: #222;
+      padding: 12px 14px;
+      border-radius: 2px 2px 16px 2px;
+      box-shadow: 3px 4px 0 rgba(0,0,0,.2);
+      margin: 0 4px 16px;
+      transform: rotate(-1deg);
+    }
+
+    .note strong { display: block; margin-bottom: 4px; }
+
+    .magnet {
+      position: absolute;
+      left: 8px;
+      top: -38px;
+      width: 120px;
+      filter: drop-shadow(2px 3px 0 rgba(0,0,0,.2));
+      transform: rotate(-4deg);
+    }
+
+    .add-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px dashed #ccd;
+    }
+
+    .add-bar input[type="text"], .add-bar input[type="date"] {
+      flex: 1 1 170px;
+      font-size: 17px;
+      border: 2px solid #556;
+      border-radius: 8px;
+      padding: 6px 8px;
+      background: #fff;
+      color: #222;
+    }
+
+    .keep {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 15px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 42px;
+      border-bottom: 1px solid #e1e3ea;
+      padding: 6px 2px;
+    }
+
+    .check {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid #222;
+      background: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      color: #2e9e4f;
+    }
+
+    .task-text {
+      flex: 1;
+      word-break: break-word;
+      font-size: 18px;
+    }
+
+    .task-date {
+      color: #555;
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      border: 0;
+      background: none;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: .7;
+    }
+
+    .empty {
+      color: #666;
+      text-align: center;
+      padding: 12px 4px;
+    }
+
+    .binder {
+      background: #2a2f3a;
+      border: 4px solid #000;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 4px 0 rgba(0,0,0,.3);
+    }
+
+    .label {
+      color: white;
+      font-size: 13px;
+      margin: 2px 0 4px;
+      opacity: .8;
+    }
+
+    .slips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .slip {
+      border: 2px solid rgba(0,0,0,.5);
+      border-bottom: 0;
+      border-radius: 7px 7px 0 0;
+      padding: 3px 10px 2px;
+      cursor: pointer;
+      color: #111;
+      font-size: 15px;
+      opacity: .7;
+    }
+
+    .slip.on {
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 0 rgba(0,0,0,.3);
+    }
+
+    .leaf {
+      background: var(--paper);
+      color: #222;
+      border-radius: 3px;
+      padding: 12px 12px 12px 42px;
+      position: relative;
+      min-height: 180px;
+      background-image: linear-gradient(transparent 31px, var(--line) 32px);
+      background-size: 100% 32px;
+      background-color: var(--paper);
+      box-shadow: 0 3px 0 rgba(0,0,0,.2);
+    }
+
+    .leaf::before {
+      content: "";
+      position: absolute;
+      left: 32px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #f2a0a0;
+    }
+
+    .hole {
+      position: absolute;
+      left: 10px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2a2f3a;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,.5);
+    }
+
+    .entry {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      min-height: 32px;
+      margin: 4px 0;
+    }
+
+    .entry small {
+      display: block;
+      color: #667;
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .count {
+      margin-top: 10px;
+      text-align: right;
+      color: white;
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: #fff;
+      color: #222;
+      border: 3px solid var(--blk);
+      border-radius: 12px;
+      padding: 10px 14px;
+      max-width: 92%;
+      box-shadow: 0 4px 0 var(--blk);
+      z-index: 20;
+    }
+
+    .hidden { display: none; }
+    @media (max-width: 480px) {
+      .add-bar { flex-direction: column; }
+      .task { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="locker">
+      <div class="door" id="door"></div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      tasks: [],
+      done: [],
+      code: null,
+      tab: 'list',
+      digits: [0, 0, 0, 0],
+      lastOpen: null,
+      selYear: null,
+      selMonth: null
+    };
+
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function load() {
+      try {
+        const saved = localStorage.getItem('lockerbuddy-single');
+        if (!saved) return;
+        const parsed = JSON.parse(saved);
+        Object.assign(state, parsed);
+      } catch (e) {}
+    }
+
+    function save() {
+      try {
+        localStorage.setItem('lockerbuddy-single', JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function toast(msg, duration = 2400) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), duration);
+    }
+
+    function todayKey() {
+      const d = new Date();
+      return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    }
+
+    function dayKey(iso) {
+      const d = new Date(iso);
+      return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      return new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function renderLock() {
+      const door = document.getElementById('door');
+      const setting = !state.code;
+      const buttonLabel = setting ? 'Set code' : 'Open locker';
+
+      door.innerHTML = `
+        <div class="lock-screen">
+          <h1>${setting ? 'SET YOUR CODE' : 'LOCKERBUDDY'}</h1>
+          <p>${setting ? 'Pick a 4-digit combo to lock your locker.' : 'Spin your combo to open up.'}</p>
+          <div class="lock-box">
+            <div class="shackle"></div>
+            <div class="digits">
+              ${state.digits.map((n, i) => `
+                <div class="digit">
+                  <button class="up" data-index="${i}" data-step="1">▲</button>
+                  <div class="cell">${n}</div>
+                  <button class="down" data-index="${i}" data-step="-1">▼</button>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn" id="submitLock">${buttonLabel}</button>
+            ${!setting ? '<div><button class="link" id="forgot">Forgot code?</button></div>' : ''}
+          </div>
+        </div>
+      `;
+
+      door.querySelectorAll('.up, .down').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.index);
+          const step = Number(btn.dataset.step);
+          state.digits[idx] = (state.digits[idx] + step + 10) % 10;
+          render();
+        });
+      });
+
+      document.getElementById('submitLock').addEventListener('click', () => {
+        const code = state.digits.join('');
+        if (setting) {
+          state.code = code;
+          save();
+          toast('Code set! Remember it: ' + code + ' 🔑');
+          state.tab = 'list';
+          render();
+          return;
+        }
+
+        if (code === state.code) {
+          state.tab = 'list';
+          render();
+        } else {
+          toast('Not quite — spin again, no worries.');
+          const box = document.querySelector('.lock-box');
+          box.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }], { duration: 300 });
+        }
+      });
+
+      const forgot = document.getElementById('forgot');
+      if (forgot) {
+        forgot.addEventListener('click', () => {
+          if (confirm('Reset your code? Your work stays safe on this device.')) {
+            state.code = null;
+            state.digits = [0,0,0,0];
+            save();
+            render();
+          }
+        });
+      }
+    }
+
+    function renderList() {
+      const door = document.getElementById('door');
+      const doneToday = state.done.filter(item => dayKey(item.doneAt) === todayKey());
+      const recap = doneToday.length
+        ? `<strong>Today you did:</strong><ul>${doneToday.map(item => `<li>${escapeHtml(item.text)}</li>`).join('')}</ul>`
+        : '<strong>Today&apos;s note</strong>Nothing checked yet — and that is okay.';
+
+      door.innerHTML = `
+        <div class="toolbar">
+          <div class="tabs">
+            <button class="tab ${state.tab === 'list' ? 'on' : ''}" data-tab="list">📋 To-Do</button>
+            <button class="tab ${state.tab === 'bind' ? 'on' : ''}" data-tab="bind">📒 Binder</button>
+          </div>
+          <button class="mini" id="relock">🔒 Lock</button>
+        </div>
+        <div class="note">${recap}</div>
+        <div class="panel">
+          <svg class="magnet" viewBox="0 0 120 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 38 Q8 28 22 26 L34 14 Q38 10 46 10 H78 Q86 10 92 18 L100 26 Q114 28 114 38 V42 H6Z" fill="#ff7043" stroke="#16181d" stroke-width="3"/>
+          </svg>
+          <h2>TO DO</h2>
+          <div class="add-bar">
+            <input type="text" id="taskInput" placeholder="Add a task..." maxlength="120" />
+            <input type="date" id="taskDate" />
+            <label class="keep"><input type="checkbox" id="reusableBox" /> reusable</label>
+            <button class="btn" id="addTaskBtn">Add</button>
+          </div>
+          <div class="task-list" id="taskList">
+            ${state.tasks.length ? state.tasks.map(task => `
+              <div class="task" data-id="${task.id}">
+                <button class="check" data-action="done">✓</button>
+                <div class="task-text">
+                  ${escapeHtml(task.text)}
+                  ${task.due ? `<div class="task-date">Due: ${task.due}</div>` : ''}
+                </div>
+                <div class="task-actions">
+                  <button class="icon-btn" data-action="reuse" title="Reusable">♻</button>
+                  <button class="icon-btn" data-action="delete" title="Delete">✕</button>
+                </div>
+              </div>
+            `).join('') : '<div class="empty">No tasks yet — add one above!</div>'}
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          state.tab = tab.dataset.tab;
+          render();
+        });
+      });
+
+      document.getElementById('relock').addEventListener('click', () => {
+        state.digits = [0,0,0,0];
+        renderLock();
+      });
+
+      document.getElementById('addTaskBtn').addEventListener('click', addTask);
+      document.getElementById('taskInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addTask();
+      });
+
+      document.querySelectorAll('[data-action="done"]').forEach(btn => {
+        btn.addEventListener('click', () => completeTask(btn.closest('.task').dataset.id));
+      });
+
+      document.querySelectorAll('[data-action="reuse"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const task = state.tasks.find(t => t.id === btn.closest('.task').dataset.id);
+          if (!task) return;
+          task.reusable = !task.reusable;
+          save();
+          render();
+        });
+      });
+
+      document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.closest('.task').dataset.id;
+          state.tasks = state.tasks.filter(t => t.id !== id);
+          save();
+          render();
+        });
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      state.tasks.push({
+        id: uid(),
+        text,
+        due: document.getElementById('taskDate').value,
+        reusable: document.getElementById('reusableBox').checked,
+        createdAt: new Date().toISOString()
+      });
+
+      input.value = '';
+      document.getElementById('taskDate').value = '';
+      document.getElementById('reusableBox').checked = false;
+      save();
+      render();
+    }
+
+    function completeTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      state.done.push({
+        id: uid(),
+        text: task.text,
+        due: task.due,
+        doneAt: new Date().toISOString()
+      });
+
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      if (task.reusable) {
+        state.tasks.push({
+          id: uid(),
+          text: task.text,
+          due: '',
+          reusable: true,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      save();
+      render();
+      toast('Nice work! ✔');
+    }
+
+    function renderBinder() {
+      const door = document.getElementById('door');
+      const years = [...new Set(state.done.map(item => new Date(item.doneAt).getFullYear()))].sort((a, b) => b - a);
+      if (!years.length) {
+        door.innerHTML = '<div class="binder"><div class="leaf"><div class="empty">No finished items yet.</div></div></div>';
+        return;
+      }
+
+      if (!state.selYear || !years.includes(state.selYear)) state.selYear = years[0];
+
+      const yearItems = state.done.filter(item => new Date(item.doneAt).getFullYear() === state.selYear);
+      const months = [...new Set(yearItems.map(item => new Date(item.doneAt).getMonth()))].sort((a, b) => b - a);
+      if (!state.selMonth || !months.includes(state.selMonth)) state.selMonth = months[0];
+
+      const monthItems = yearItems.filter(item => new Date(item.doneAt).getMonth() === state.selMonth).sort((a, b) => b.doneAt.localeCompare(a.doneAt));
+
+      const htmlRows = monthItems.map(item => `
+        <div class="entry">
+          <span>✔</span>
+          <div style="flex:1;">
+            ${escapeHtml(item.text)}
+            <small>${formatDate(item.doneAt)}</small>
+          </div>
+          <button class="icon-btn" data-readd="${item.id}" title="Add back to list">↻</button>
+        </div>
+      `).join('');
+
+      door.innerHTML = `
+        <div class="toolbar">
+          <div class="tabs">
+            <button class="tab ${state.tab === 'list' ? 'on' : ''}" data-tab="list">📋 To-Do</button>
+            <button class="tab ${state.tab === 'bind' ? 'on' : ''}" data-tab="bind">📒 Binder</button>
+          </div>
+          <button class="mini" id="relock">🔒 Lock</button>
+        </div>
+        <div class="binder">
+          <div class="label">YEAR</div>
+          <div class="slips">
+            ${years.map(y => `<button class="slip ${y === state.selYear ? 'on' : ''}" data-year="${y}" style="background:${colorForIndex(y)}">${y}</button>`).join('')}
+          </div>
+          <div class="label">MONTH</div>
+          <div class="slips">
+            ${months.map(m => `<button class="slip ${m === state.selMonth ? 'on' : ''}" data-month="${m}" style="background:${colorForIndex(m)}">${MON[m]}</button>`).join('')}
+          </div>
+          <div class="leaf">
+            <span class="hole" style="top:20px"></span>
+            <span class="hole" style="top:100px"></span>
+            <span class="hole" style="top:180px"></span>
+            ${htmlRows}
+          </div>
+          <div class="count">${monthItems.length} finished in ${MON[state.selMonth]} ${state.selYear} · ${state.done.length} all-time</div>
+        </div>
+      `;
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          state.tab = tab.dataset.tab;
+          render();
+        });
+      });
+
+      document.getElementById('relock').addEventListener('click', () => {
+        state.digits = [0,0,0,0];
+        renderLock();
+      });
+
+      document.querySelectorAll('[data-year]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selYear = Number(btn.dataset.year);
+          state.selMonth = null;
+          render();
+        });
+      });
+
+      document.querySelectorAll('[data-month]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selMonth = Number(btn.dataset.month);
+          render();
+        });
+      });
+
+      document.querySelectorAll('[data-readd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = state.done.find(x => x.id === btn.dataset.readd);
+          if (!item) return;
+          state.done = state.done.filter(x => x.id !== item.id);
+          state.tasks.push({
+            id: uid(),
+            text: item.text,
+            due: '',
+            reusable: false,
+            createdAt: new Date().toISOString()
+          });
+          save();
+          render();
+        });
+      });
+    }
+
+    function render() {
+      if (!state.code) {
+        renderLock();
+        return;
+      }
+
+      if (state.tab === 'bind') {
+        renderBinder();
+      } else {
+        renderList();
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>\"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\\': '&#92;', '"': '&quot;' }[char] || char));
+    }
+
+    function colorForIndex(index) {
+      const palette = ['#ff8a80','#ffb74d','#fff176','#aed581','#4db6ac','#4fc3f7','#9fa8da','#ce93d8','#f48fb1','#bcaaa4','#90a4ae','#80cbc4'];
+      return palette[Math.abs(index) % palette.length];
+    }
+
+    load();
+    state.tab = 'list';
+    render();
+  </script>
+</body>
+</html>

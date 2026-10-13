@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LockerBuddy</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#3d7fd6"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name=[...]
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
+<!-- JSZip: client-side zipping for "Download App" feature -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-+oMZq3nq8zGk2J7Qx1w4eFZ2v6F6q1bYjK6wQe4Gx3sYb2o5a8k9c1Q2s3Tn4V5m6n7o8p9q0r1s2t3u4v5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--page:#e8eef5;--ink:#1d2433;--metal:#3d7fd6;--metal2:#2f67b3;--edge:#1f4a85;--board:#fbfbf6;--paper:#fffef8;--line:#b8d4f0;--yel:#ffcc00;--blk:#16181d;--soft:#6b7488}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#12161f;--ink:#e9edf5;--board:#f6f6ee;--soft:#9aa3b8}}
+:root[data-theme="dark"]{--page:#12161f;--ink:#e9edf5;--board:#f6f6ee;--soft:#9aa3b8}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--page);color:var(--ink);font-family:'Patrick Hand','Comic Sans MS',system-ui,sans-serif;font-size:18px;min-height:100vh}
+.mk{font-family:'Permanent Marker','Marker Felt',cursive}
+.wrap{max-width:560px;margin:0 auto;padding:14px 12px 40px}
+.locker{background:linear-gradient(90deg,var(--metal2),var(--metal) 12%,var(--metal) 88%,var(--metal2));border:5px solid var(--edge);border-radius:14px;padding:14px;box-shadow:0 8px 0 var(--edge),[...]
+.vents{display:grid;gap:5px;margin:2px 18% 14px}.vents i{height:8px;border-radius:5px;background:var(--edge);opacity:.75}
+.sticker{position:absolute;top:34px;right:12px;font-size:12px;background:var(--yel);color:#000;padding:2px 7px;border-radius:4px;transform:rotate(6deg);font-family:'Permanent Marker',cursive}
+.door{background:#0002;border-radius:8px;padding:14px;border:3px dashed #ffffff44;min-height:300px}
+h1{margin:0 0 4px;font-size:28px;color:#fff;text-align:center;text-shadow:2px 2px 0 var(--edge)}
+.sub{text-align:center;color:#fff;margin:0 0 14px;opacity:.95}
+/* lock */
+.lock{background:#c9ced8;border:4px solid #8a91a1;border-radius:18px;width:230px;margin:10px auto;padding:12px 10px;text-align:center;box-shadow:0 5px 0 #6c7384}
+.shackle{width:80px;height:40px;border:9px solid #8a91a1;border-bottom:0;border-radius:40px 40px 0 0;margin:-40px auto 8px;position:relative;top:-6px}
+.wheels{display:flex;gap:8px;justify-content:center}
+.wh{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wh button{width:42px;height:26px;border:2px solid #444;background:#eef0f4;border-radius:6px;font-size:14px;cursor:pointer;color:#222}
+.wh b{width:42px;height:48px;background:#111;color:var(--yel);display:grid;place-items:center;font-size:30px;border-radius:6px;font-family:'Permanent Marker',monospace;font-weight:400}
+.shake{animation:sh .4s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.btn{font-family:inherit;font-size:18px;border:3px solid var(--blk);background:var(--yel);color:#000;border-radius:10px;padding:7px 16px;cursor:pointer;box-shadow:0 3px 0 var(--blk)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--blk)}
+.btn.alt{background:#fff}
+.link{background:none;border:0;color:#fff;text-decoration:underline;font-family:inherit;font-size:15px;cursor:pointer;opacity:.9}
+/* top bar */
+.bar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px}
+.tab{font-family:inherit;font-size:17px;border:3px solid var(--blk);background:#fff;color:#000;border-radius:10px 10px 0 0;padding:5px 12px;cursor:pointer}
+.tab.on{background:var(--yel)}
+.mini{font-family:inherit;font-size:14px;border:2px solid #fff8;background:#0003;color:#fff;border-radius:8px;padding:4px 9px;cursor:pointer}
+/* recap sticky */
+.note{background:#fff37a;color:#222;padding:10px 12px 12px;border-radius:2px 2px 16px 2px;box-shadow:3px 4px 0 #0003;transform:rotate(-1.2deg);margin:0 4px 16px;font-size:17px}
+.note b{font-family:'Permanent Marker',cursive;font-weight:400;display:block;margin-bottom:2px}
+.note ul{margin:4px 0 0;padding-left:20px}
+/* board */
+.board{background:var(--board);color:#222;border:5px solid #b9bfca;border-radius:8px;padding:16px 12px 12px;position:relative;margin-top:34px;box-shadow:inset 0 0 0 2px #fff,0 4px 0 #0003}
+.magnet{position:absolute;top:-38px;left:8px;width:120px;filter:drop-shadow(2px 3px 0 #0004);transform:rotate(-4deg)}
+.board h2{margin:0 0 10px 120px;font-size:26px;color:#c62828;line-height:1}
+.add{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:2px dashed #ccd}
+.add input[type=text]{flex:1 1 160px}
+input[type=text],input[type=date]{font-family:inherit;font-size:17px;border:2px solid #556;border-radius:8px;padding:5px 8px;background:#fff;color:#222;min-width:0}
+input[type=date]{font-size:14px}
+.keep{font-size:15px;display:flex;align-items:center;gap:4px;color:#333}
+.task{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #e1e3ea}
+.chk{flex:none;width:30px;height:30px;border:3px solid #222;border-radius:50%;background:#fff;cursor:pointer;font-size:18px;color:#2e9e4f;line-height:1}
+.task .t{flex:1;min-width:0;word-break:break-word;cursor:text}
+.task .t input{width:100%}
+.due{font-size:13px;color:#555}
+.ico{background:none;border:0;font-size:19px;cursor:pointer;padding:2px 4px;opacity:.55;color:#222}.ico.on{opacity:1}
+.pop{animation:pop .5s forwards}@keyframes pop{50%{transform:scale(1.04) rotate(1deg);background:#d9f7c6}100%{opacity:0;transform:translateX(60px)}}
+.empty{color:#666;padding:12px 4px;text-align:center}
+/* binder */
+.binder{background:#2a2f3a;border:4px solid #000;border-radius:10px;padding:10px;box-shadow:0 4px 0 #0006}
+.rowlab{color:#fff;font-size:13px;margin:2px 0 3px;opacity:.8}
+.slips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.slip{font-family:inherit;font-size:15px;border:2px solid #0008;border-bottom:0;border-radius:7px 7px 0 0;padding:3px 10px 2px;cursor:pointer;color:#111;opacity:.65}
+.slip.on{opacity:1;transform:translateY(-2px);box-shadow:0 3px 0 #0006}
+.leaf{background:var(--paper);color:#222;border-radius:3px;padding:10px 10px 10px 50px;position:relative;min-height:180px;
+background-image:linear-gradient(transparent 31px,var(--line) 32px);background-size:100% 32px;background-color:var(--paper);box-shadow:0 3px 0 #0004}
+.leaf:before{content:"";position:absolute;left:38px;top:0;bottom:0;width:2px;background:#f2a0a0}
+.hole{position:absolute;left:10px;width:16px;height:16px;border-radius:50%;background:#2a2f3a;box-shadow:inset 0 2px 3px #000a}
+.ent{display:flex;gap:6px;align-items:flex-start;min-height:32px;line-height:32px;border:0;padding:0}
+.ent .tx{flex:1;line-height:1.1;padding-top:4px;word-break:break-word}
+.ent small{display:block;color:#667;font-size:13px}
+.day{font-family:'Permanent Marker',cursive;color:#2d5fa8;line-height:32px;font-size:15px}
+.tot{text-align:right;color:#fff;font-size:14px;margin-top:6px;opacity:.85}
+/* toast */
+#toasts{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:9}
+.toast{pointer-events:auto;background:#fff;color:#222;border:3px solid var(--blk);border-radius:12px;padding:10px 14px;max-width:92%;box-shadow:0 4px 0 var(--blk);animation:up .3s}
+.toast .a{display:flex;gap:8px;margin-top:6px}.toast .btn{font-size:15px;padding:3px 10px}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+</style></head>
+<body><div class="wrap"><div class="locker"><div class="vents"><i></i><i></i><i></i></div><div class="sticker">#1 ME</div><div class="door" id="door"></div></div></div>
+<!-- Download App button: creates a ZIP of the app files + your backup data -->
+<button id="downloadAppBtn" class="mini" style="position:fixed;right:12px;bottom:12px;z-index:60">Download App</button>
+<div id="toasts"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let mem={tasks:[],done:[],code:null,last:null};
+function load(){try{const r=localStorage.getItem('locker1');if(r)mem=Object.assign(mem,JSON.parse(r))}catch(e){}}
+function save(){try{localStorage.setItem('locker1',JSON.stringify(mem))}catch(e){}}
+load();
+let view='lock',tab='list',digits=[0,0,0,0],editing=null,selY=null,selM=null,reminders=false;
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COL=['#ff8a80','#ffb74d','#fff176','#aed581','#4db6ac','#4fc3f7','#9fa8da','#ce93d8','#f48fb1','#bcaaa4','#90a4ae','#80cbc4'];
+const fmt=iso=>new Date(iso).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const dueTxt=d=>{if(!d)return'';const [y,m,dd]=d.split('-').map(Number);const dt=new Date(y,m-1,dd);return dt.toLocaleDateString([],{month:'short',day:'numeric'})};
+const todayKey=()=>{const n=new Date();return n.getFullYear()+'-'+n.getMonth()+'-'+n.getDate()};
+const dayKey=iso=>{const n=new Date(iso);return n.getFullYear()+'-'+n.getMonth()+'-'+n.getDate()};
+const PRAISE=["Nice! That counts. ⭐","Good job — you did something. That's what matters.","Done and dated. Filed in your binder. 📎","Small step, real progress. 💛","Look at you go!","Chec[...]
+const NUDGES=["Hey 👋 did you finish a task? Even a tiny one counts.","Quick locker check-in — anything you got done?","No pressure. Did you do something little today?"];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+function toast(msg,acts,ms){const t=document.createElement('div');t.className='toast';t.innerHTML='<div>'+msg+'</div>';
+ if(acts){const a=document.createElement('div');a.className='a';acts.forEach(([l,f])=>{const b=document.createElement('button');b.className='btn';b.textContent=l;b.onclick=()=>{f&&f();t.remove()}[...]
+ $('#toasts').appendChild(t);setTimeout(()=>t.remove(),ms||(acts?15000:3500))}
+
+const CAR=`<svg class="magnet" viewBox="0 0 120 56"><path d="M6 38 Q8 28 22 26 L34 14 Q38 10 46 10 H78 Q86 10 92 18 L100 26 Q114 28 114 38 V42 H6Z" fill="#ff7043" stroke="#16181d" stroke-width="3[...]
+
+function render(){const d=$('#door');
+ if(view==='lock')return renderLock(d);
+ const doneToday=mem.done.filter(x=>dayKey(x.doneAt)===todayKey());
+ d.innerHTML=`<div class="bar"><div class="tabs"><button class="tab ${tab==='list'?'on':''}" data-t="list">📋 To-Do</button><button class="tab ${tab==='bind'?'on':''}" data-t="bind">📒 Binder[...]
+ d.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
+ $('#relock').onclick=()=>{view='lock';digits=[0,0,0,0];render()};
+ $('#rem').onclick=enableRem;$('#bk').onclick=backup;$('#dl')&&($('#dl').onclick=downloadApp);
+ tab==='list'?renderList(doneToday):renderBinder();}
+
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e});
+window.addEventListener('appinstalled',()=>{deferred=null;toast('Installed! Open LockerBuddy from your home screen. 🎉')});
+function isApp(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
+function installApp(){
+ if(deferred){deferred.prompt();deferred.userChoice.finally(()=>{deferred=null});return}
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ toast(ios?'On iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>.':'Open your browser menu (⋮) and choose <b>Install app</b> or <b>Add to Home Screen</b>.',null,9000)}
+function renderLock(d){const setting=!mem.code;
+ d.innerHTML=`<h1 class="mk">${setting?'SET YOUR CODE':'LOCKERBUDDY'}</h1><p class="sub">${setting?'Pick a 4-digit combo to lock your locker.':'Spin your combo to open up.'}</p>
+ <div class="lock" id="lk"><div class="shackle"></div><div class="wheels">${digits.map((v,i)=>`<div class="wh"><button data-i="${i}" data-d="1">▲</button><b>${v}</b><button data-i="${i}" data-d="-1">▼</button></div>`).join('')}</div>
+ <p style="text-align:center;margin-top:10px"><button id="go" class="btn">${setting?'Set code':'Open'}</button></p>
+ ${setting?'':'<p style="text-align:center"><button class="link" id="forgot">Forgot code?</button></p>'}${isApp()?'':'<p style="text-align:center"><button class="link" id="inst">📲 Install as a web app</button></p>'}
+ </div>`;
+ const ib=$('#inst');if(ib)ib.onclick=installApp;
+ d.querySelectorAll('.wh button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;digits[i]=(digits[i]+ +b.dataset.d+10)%10;render()});
+ $('#go').onclick=()=>{const c=digits.join('');
+  if(setting){mem.code=c;save();toast('Code set! Remember it: '+c+' 🔑');view='list';tab='list';render();greet()}
+  else if(c===mem.code){view='list';tab='list';render();greet()}
+  else{const l=$('#lk');l.classList.remove('shake');void l.offsetWidth;l.classList.add('shake');toast('Not quite — spin again, no worries.')}};
+ const f=$('#forgot');if(f)f.onclick=()=>toast('Reset code? Your tasks and binder stay safe.',[['Reset',()=>{mem.code=null;save();digits=[0,0,0,0];render()}],['Cancel']])}
+
+function greet(){const n=mem.done.filter(x=>dayKey(x.doneAt)===todayKey()).length;
+ setTimeout(()=>toast(n?`Welcome back! You've already finished ${n} today. 🎉`:'Hey! Opening your locker is a win already. 💛'),300)}
+
+function renderList(doneToday){const b=$('#body');
+ const recap=doneToday.length?`<b class="mk">Today you did:</b><ul>${doneToday.map(x=>`<li>${esc(x.text)}</li>`).join('')}</ul>`:`<b class="mk">Today's note</b>Nothing checked yet — and that's [...]
+ b.innerHTML=`<div class="note">${recap}</div>
+ <div class="board">${CAR}<h2 class="mk">TO DO</h2>
+ <div class="add"><input type="text" id="nt" placeholder="Add a task..." maxlength="120"><input type="date" id="nd"><label class="keep"><input type="checkbox" id="nk">♻ reusable</label><button id="na" class="btn">Add</button></div>
+ <div id="tl">${mem.tasks.length?mem.tasks.map(t=>`<div class="task" data-id="${t.id}"><button class="chk" title="Done!"></button><div class="t">${editing===t.id?`<input type="text" value="${esc(t.text)}">`:`<div>${esc(t.text)}</div>`}</div><div class="due"><input type="date" class="dd" value="${t.due}"></div><div><button data-a="keep" class="ico" title="Keep on your board">♻</button><button data-a="del" class="ico" title="Delete">✖</button></div></div>`).join(''):'<div class="empty">No tasks yet — add one above!</div>'}</div>
+ </div>`;
+ const add=()=>{const v=$('#nt').value.trim();if(!v)return;mem.tasks.push({id:uid(),text:v,due:$('#nd').value||'',reuse:$('#nk').checked,created:new Date().toISOString()});save();render();};
+ $('#na').onclick=add;$('#nt').onkeydown=e=>{if(e.key==='Enter')add()};
+ b.querySelectorAll('.task').forEach(r=>{const id=r.dataset.id;const t=mem.tasks.find(x=>x.id===id);
+  r.querySelector('.chk').onclick=()=>complete(id,r);
+  r.querySelector('.t').onclick=()=>{if(editing!==id){editing=id;render();const i=document.querySelector('.task[data-id="'+id+'"] .t input');i&&i.focus()}};
+  const inp=r.querySelector('.t input');if(inp){const fin=()=>{const v=inp.value.trim();if(v)t.text=v;editing=null;save();render()};inp.onblur=fin;inp.onkeydown=e=>{if(e.key==='Enter')inp.blur()}};
+  r.querySelector('.dd').onchange=e=>{t.due=e.target.value;save()};
+  r.querySelector('[data-a=keep]').onclick=()=>{t.reuse=!t.reuse;save();render()};
+  r.querySelector('[data-a=del]').onclick=()=>{mem.tasks=mem.tasks.filter(x=>x.id!==id);save();render()}})}
+
+function complete(id,row){const t=mem.tasks.find(x=>x.id===id);if(!t)return;row.classList.add('pop');
+ setTimeout(()=>{mem.done.push({id:uid(),text:t.text,due:t.due,doneAt:new Date().toISOString()});
+  mem.tasks=mem.tasks.filter(x=>x.id!==id);
+  if(t.reuse)mem.tasks.push({id:uid(),text:t.text,due:'',reuse:true,created:new Date().toISOString()});
+  mem.last=Date.now();save();render();toast(pick(PRAISE)+(t.reuse?' (Your reusable task is back on the board.)':''))},450)}
+
+function renderBinder(){const b=$('#body');
+ if(!mem.done.length){b.innerHTML='<div class="binder"><div class="leaf"><span class="hole" style="top:20px"></span><span class="hole" style="top:90px"></span><div class="empty" style="padding-to[...]
+ const years=[...new Set(mem.done.map(x=>new Date(x.doneAt).getFullYear()))].sort((a,b)=>b-a);
+ if(!years.includes(selY))selY=years[0];
+ const inY=mem.done.filter(x=>new Date(x.doneAt).getFullYear()===selY);
+ const months=[...new Set(inY.map(x=>new Date(x.doneAt).getMonth()))].sort((a,b)=>b-a);
+ if(!months.includes(selM))selM=months[0];
+ const items=inY.filter(x=>new Date(x.doneAt).getMonth()===selM).sort((a,b)=>b.doneAt.localeCompare(a.doneAt));
+ let lastDay='';const rows=items.map(x=>{const dk=dayKey(x.doneAt);let h='';if(dk!==lastDay){lastDay=dk;h=`<div class="day">${new Date(x.doneAt).toLocaleDateString([],{weekday:'long',month:'short[...])}</div>`}
+   return h+`<div class="ent"><span>✔</span><div class="tx">${esc(x.text)}<small>${fmt(x.doneAt)}</small></div><button class="ico on" data-id="${x.id}" title="Add back to my list">↻</button></[...]
+  });
+ b.innerHTML=`<div class="binder"><div class="rowlab">YEAR</div><div class="slips">${years.map((y,i)=>`<button class="slip ${y===selY?'on':''}" data-y="${y}" style="background:${COL[(y*7)%12]}">${y}</button>`).join('')}</div>
+ <div class="rowlab">MONTH</div><div class="slips">${months.map(m=>`<button class="slip ${m===selM?'on':''}" data-m="${m}" style="background:${COL[m]}">${MON[m]}</button>`).join('')}</div>
+ <div class="leaf"><span class="hole" style="top:20px"></span><span class="hole" style="top:100px"></span><span class="hole" style="top:180px"></span>${rows}</div>
+ <div class="tot">${items.length} finished in ${MON[selM]} ${selY} · ${mem.done.length} all-time</div></div>`;
+ b.querySelectorAll('[data-y]').forEach(e=>e.onclick=()=>{selY=+e.dataset.y;selM=null;render()});
+ b.querySelectorAll('[data-m]').forEach(e=>e.onclick=()=>{selM=+e.dataset.m;render()});
+ b.querySelectorAll('.ent .ico').forEach(e=>e.onclick=()=>{const x=mem.done.find(d=>d.id===e.dataset.id);mem.tasks.push({id:uid(),text:x.text,due:'',reuse:false,created:new Date().toISOString()})[...]
+ }
+
+function enableRem(){reminders=!reminders;
+ if(reminders&&'Notification' in window&&Notification.permission==='default'){try{Notification.requestPermission()}catch(e){}}
+ toast(reminders?'Friendly reminders on while this page is open. 🔔':'Reminders off.');render()}
+function nudge(){if(!reminders||view==='lock')return;const m=pick(NUDGES);
+ toast(m,[['Yes! ✔',()=>{tab='list';render();toast('Tell me about it — check it off! 🎉')}],['Not yet',()=>toast("That's okay. One tiny step whenever you're ready. 💛")]],20000);
+ try{if('Notification' in window&&Notification.permission==='granted'&&document.hidden)new Notification('My Locker',{body:m})}catch(e){}}
+function backup(){
+ const data=JSON.stringify({app:'lockerbuddy',v:1,tasks:mem.tasks,done:mem.done,code:mem.code});
+ const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:20;padding:14px';
+ o.innerHTML='<div style="background:#fff;color:#222;border:3px solid #16181d;border-radius:14px;padding:14px;width:100%;max-width:460px"><b class="mk">Backup &amp; Restore</b><p style="margin:6p[...]
+ document.body.appendChild(o);
+ const ta=o.querySelector('#bt');ta.value=data;
+ const restore=txt=>{try{const j=JSON.parse(txt);if(j.app!=='lockerbuddy'||!Array.isArray(j.tasks)||!Array.isArray(j.done))throw 0;mem.tasks=j.tasks;mem.done=j.done;if(j.code)mem.code=String(j.co[...]
+ o.querySelector('#b1').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='lockerbuddy-backup-'+new Date().toI[...]
+ o.querySelector('#b2').onclick=()=>{ta.select();try{navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'))}catch(e){try{document.execCommand('copy')}catch(_){}}toast('Co[...]
+ o.querySelector('#b3').onclick=()=>{ta.select();try{navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'))}catch(e){try{document.execCommand('copy')}catch(_){}}toast('Copied to clipboard')};
+ o.querySelector('#b4').onclick=()=>o.remove();
+ o.querySelector('#bf').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f)};
+ }
+
+// Download app bundle (index + manifest + service worker + icons) as a ZIP including current backup
+async function downloadApp(){
+ if(typeof JSZip==='undefined'){toast('Download library is not loaded — try again.');return}
+ toast('Preparing app bundle...');
+ const zip=new JSZip();
+ const files=['index.html','manifest.webmanifest','sw.js','icon-192.png','icon-512.png','apple-touch-icon.png'];
+ for(const f of files){
+   try{
+     const res=await fetch(f);
+     if(!res.ok)continue;
+     const ct=res.headers.get('content-type')||'';
+     if(ct.startsWith('image/')||f.endsWith('.png')){
+       const blob=await res.blob();
+       zip.file(f,blob);
+     }else{
+       const text=await res.text();
+       zip.file(f,text);
+     }
+   }catch(e){/* ignore individual fetch errors */}
+ }
+ // include user data as a backup inside the bundle
+ zip.file('lockerbuddy-backup.json',JSON.stringify({app:'lockerbuddy',v:1,tasks:mem.tasks,done:mem.done,code:mem.code}));
+ try{
+   const blob=await zip.generateAsync({type:'blob'});
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(blob);
+   a.download='lockerbuddy-app.zip';
+   document.body.appendChild(a);
+   a.click();
+   a.remove();
+   toast('Download ready — check your downloads folder.');
+ }catch(e){toast('Sorry — failed to create the download.');}
+}
+
+// attach download button handler after DOM is ready
+try{document.getElementById('downloadAppBtn').onclick=downloadApp}catch(e){}
+
+setInterval(nudge,45*60*1000);
+render();
+try{if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+</script></body></html>
